@@ -1,0 +1,53 @@
+# REFERÊNCIA DE EXTRAÇÃO: RELATÓRIO FINANCEIRO KANNON DO (V2)
+
+## OBJETIVO
+Extrair dados financeiros e de enturmação de um PDF de cobrança da Unidade: ASSOCIAÇÃO DESPORTIVA E CULTURAL KANNON DO.
+
+## ESTRUTURA DOS DADOS (SCHEMA)
+
+1. RESUMO GERAL:
+   - Previsto (Moeda)
+   - Realizado (Moeda)
+   - Vencido (Moeda)
+   - Juros e Multa (Moeda)
+
+2. TRANSAÇÕES (TABELA PRINCIPAL):
+   - Cliente / Dependente: Nome completo (Pode conter quebra de linha entre titular e dependente).
+   - Grupo/SubGrupo: Tipo da cobrança (Ex: "PRÉ - Inscrição" ou "Mensalidade").
+   - Descrição: Detalhes do contrato, número do boleto e identificação da turma.
+   - Situação: Status da parcela (Ex: "Quitado").
+   - Data de Vencimento: Formato DD/MM/AAAA.
+   - Valor: Valor original da parcela.
+   - Data de Pagamento: Data da baixa bancária.
+   - Valor Pago: Valor final recebido (incluindo juros/multas).
+
+3. ENTURMAÇÃO (MAPEAMENTO DE TURMAS):
+   - Turma/Horário: Extrair especificamente o texto descritivo que indica os dias e horários da aula.
+   - Localização: Geralmente dentro da coluna "Grupo/SubGrupo / Descrição" ou na linha de texto complementar logo abaixo do nome do cliente.
+   - Padrão: Buscar por termos como "Kanon do/Terça e Quinta 20h" ou "Terça e Quinta 18h30".
+
+4. CONCILIAÇÃO BANCÁRIA:
+   - Dt. Crédito: Data em que o valor entrou na conta corrente.
+   - Valor Crédito: Valor líquido após taxas.
+   - Tarifa Bancária: Valor retido pelo banco (Padrão: R$ 1,99).
+
+## REGRAS DE LIMPEZA E LÓGICA (DATA CLEANING)
+- Nomes: Unir linhas fragmentadas (Ex: "Amanda Cabral da Silva\nKaue Cabral do Santos" -> "Amanda Cabral da Silva / Kaue Cabral do Santos").
+- Conversão Numérica: Transformar strings "R$ 150,00" em floats 150.0.
+- Datas: Converter strings DD/MM/AAAA para objetos datetime.
+- Extração de Turma: Se a descrição contiver "(1/1) PRÉ- Inscrição Kanon do/Terça e Quinta 20h", isolar o trecho "Terça e Quinta 20h" para uma coluna dedicada.
+
+## EXEMPLO DE MAPEAMENTO ESPERADO (JSON)
+{
+    "cliente": "Eloá Vitória Rodrigues da Silva",
+    "tipo": "PRÉ - Inscrição",
+    "turma": "Terça e Quinta 18h30",
+    "status": "Quitado",
+    "vencimento": "2026-04-10",
+    "valor_pago": 0.00
+}
+
+## BIBLIOTECAS RECOMENDADAS
+- pdfplumber (essencial para extração de tabelas e textos posicionais)
+- pandas (para estruturar os dados finais)
+- re (expressões regulares para identificar padrões de horários e créditos)

@@ -1,0 +1,38 @@
+# CONTEXTO DO PROJETO: SISTEMA DE GESTÃO FINANCEIRA KANNON DO
+
+## 1. OBJETIVO
+Desenvolver uma aplicação web para processar relatórios PDF de mensalidades e gerenciar matrículas ativas, pagamentos e pendências. O sistema rodará em um hardware local (i5 6th Gen, 16GB RAM) e será acessado via Cloudflare Tunnel.
+
+## 2. STACK TECNOLÓGICA
+- Backend: FastAPI (Python 3.10+)
+- Frontend: Next.js (App Router, TypeScript)
+- Banco de Dados: SQLite (via SQLAlchemy)
+- Processamento de PDF: pdfplumber
+- Estilização: Tailwind CSS
+
+## 3. REGRAS DE EXTRAÇÃO (BASEADO NO RELATÓRIO PDF ANEXADO)
+O sistema deve extrair do PDF[cite: 3, 33]:
+- Unidade: ASSOCIAÇÃO DESPORTIVA E CULTURAL KANNON DO[cite: 3].
+- Resumo Financeiro: Valor Previsto, Realizado, Vencido, Juros e Multa[cite: 2].
+- Dados do Aluno/Pagamento:
+    - Nome do Cliente/Dependente[cite: 3, 5, 6].
+    - Grupo/Descrição (Ex: "Kanon do/Terça e Quinta 20h")[cite: 4, 5].
+    - Situação (Quitado, Vencido, A Receber)[cite: 3, 6, 21].
+    - Data de Vencimento e Data de Pagamento[cite: 6, 17, 21].
+    - Valor da Mensalidade e Valor Pago (incluindo juros se houver)[cite: 6, 16, 27].
+    - Detalhes Bancários: Taxa de R$ 1,99 por boleto e Valor Crédito líquido[cite: 10, 12, 16, 20].
+
+## 4. ESTRUTURA DE DADOS (DATABASE SCHEMA)
+- Table 'alunos': id, nome_cliente, dependente, grupo_inscricao, status_matricula (Ativa/Inativa).
+- Table 'mensalidades': id, aluno_id, contrato_num, mes_referencia, data_vencimento, data_pagamento, valor_previsto, valor_pago, taxa_bancaria, status (Quitado/Pendente).
+
+## 5. REQUISITOS DE INTERFACE (UI)
+- Dashboard: Cards com métricas (Total Recebido vs Previsto)[cite: 2].
+- Lista de Alunos: Tabela com filtros por situação da parcela (Vencido, Recebido, A Receber)[cite: 3].
+- Upload: Área para upload do PDF gerado pelo sistema Galileu[cite: 9, 11, 16].
+- Alertas: Identificar pagamentos feitos após o vencimento (Ex: Daniela Vieira pagou em 07/04 o vencimento de 06/04 com juros)[cite: 6].
+
+## 6. DIRETRIZES DE CÓDIGO
+- No FastAPI: Criar rotas assíncronas e utilizar Pydantic para validação.
+- No Next.js: Utilizar Server Components para busca de dados e Client Components para interatividade.
+- Docker: Criar um docker-compose para orquestrar o servidor i5 local.
