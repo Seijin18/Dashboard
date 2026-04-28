@@ -1,8 +1,10 @@
-from fastapi import FastAPI, Depends, UploadFile, File, BackgroundTasks, Body
+from fastapi import FastAPI, Depends, UploadFile, File, BackgroundTasks, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 import shutil
 import os
+import logging
+from logging.handlers import RotatingFileHandler
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -11,6 +13,31 @@ from .database import engine, get_db
 from .pdf_parser import extract_pdf_data
 
 models.Base.metadata.create_all(bind=engine)
+
+# Configuração de Logs
+LOG_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "logs")
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+logger = logging.getLogger("kannon_do_api")
+logger.setLevel(logging.INFO)
+
+file_handler = RotatingFileHandler(
+    os.path.join(LOG_DIR, "api.log"),
+    maxBytes=10485760,  # 10MB
+    backupCount=5
+)
+file_handler.setFormatter(logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+))
+
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(message)s'
+))
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 app = FastAPI(title="Kannon Do API Financeira")
 
@@ -22,18 +49,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+logger.info("API iniciada e configurada.")
+
 @app.get("/")
 def read_root():
     return {"message": "API Financeira Kannon Do rodando."}
 
 @app.post("/upload-pdf-preview/")
 async def upload_pdf_preview(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    logger.info(f"Recebido arquivo para preview: {file.filename}")
     file_location = f"temp_{file.filename}"
     with open(file_location, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
     try:
         registros = extract_pdf_data(file_location)
+        logger.info(f"Extraídos {len(registros)} registros do PDF.")
         
         novos = []
         atualizados = []
@@ -94,6 +125,7 @@ async def upload_pdf_preview(file: UploadFile = File(...), db: Session = Depends
 async def upload_pdf_confirm(registros: List[Dict[str, Any]] = Body(...), db: Session = Depends(get_db)):
     try:
         processados = 0
+        logger.info(f"Confirmando processamento de {len(registros)} registros.")
         for rw in registros:
             aluno_info = rw["aluno"]
             mens_info = rw["mensalidade"]
@@ -168,3 +200,12 @@ def read_alunos(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
         })
         
     return resultado
+
+@app.get("/alunos/{aluno_id}", response_model=schemas.AlunoComHistorico)
+def read_aluno(aluno_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Buscando detalhes do aluno ID: {aluno_id}")
+    aluno = db.query(models.Aluno).filter(models.Aluno.id == aluno_id).first()
+    if not aluno:
+        logger.warning(f"Aluno ID {aluno_id} não encontrado.")
+        raise HTTPException(status_code=404, detail="Aluno não encontrado")
+    return aluno

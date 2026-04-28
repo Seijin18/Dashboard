@@ -1,53 +1,56 @@
 # Dashboard KannonDo
 
-Bem-vindo ao repositório do **Dashboard KannonDo**, um sistema de ingestão, validação e visualização financeira desenhado para processar os relatórios extraídos nativamente do sistema **Galileu**. 
+Bem-vindo ao repositório do **Dashboard KannonDo**, um sistema de ingestão, validação e visualização financeira desenhado para processar os relatórios extraídos nativamente do sistema **Galileu**. O projeto automatiza a leitura de PDF, comparação de dados históricos e acompanhamento de pagamentos para a academia de artes marciais Kannon Do.
 
 ## 📌 Funcionalidades
 - **Leitura Automática de PDF (pdfplumber)**: Um robô de parsing lê o modelo bruto do Galileu. Relaciona dependentes, datas de vencimento, status financeiro e contratos.
-- **Pré-Visualização Inteligente (Modal)**: O Backend atua de formador de diferencial. Antes de submeter os dados para o banco, todos os registros são comparados com a base local para detectar faturas "**Novas**", "**Atualizadas**" (ex.: Pendente ➡️ Pago) e "**Inalteradas**".
-- **Dashboard Front-end Responsivo**: Interface Tailwind v4/Next.js 16 para métricas globais e listagens.
+- **Pré-Visualização Inteligente (Modal)**: O Backend atua como formador de diferencial. Antes de submeter os dados para o banco, todos os registros são comparados com a base local para detectar faturas "**Novas**", "**Atualizadas**" (ex.: Pendente ➡️ Pago) e "**Inalteradas**".
+- **Dashboard Front-end Responsivo**: Interface moderna (App Router) para métricas globais e listagens de mensalidades.
 - **Relatório de Atualizações**: Aviso com o número total de resumos inseridos, contadores e exibição comparativa na tela antes do commit no SQLite.
 
-## 🛠 Arquitetura do Projeto
+## 🛠 Arquitetura & Tecnologias
 - **Backend**: Python 3.10+, FastAPI, SQLAlchemy, SQLite (banco leve, auto-contido: `kannondo.db`).
-- **Frontend**: Next.js 16 (App Router), React, Tailwind CSS, Lucide-React.
-- **Ambiente/Orquestração**: Docker & Docker Compose (para o ecossistema Python). No front-end indicamos a execução local no Windows (Node 20+) devido a restrições de permissões em volumes WSL durante o Live-Reloading do Turbopack.
+- **Frontend**: Next.js 16 (App Router), React 19, Tailwind CSS v4, Lucide-React.
+- **Orquestração**: Docker & Docker Compose para o ecossistema backend.
+- **Parsing**: `pdfplumber` com lógica regex para extração precisa de tabelas financeiras.
 
 ## 🚀 Como Executar
 
-### 1. Ambiente do Servidor (Backend em Docker)
-Certifique-se de que possui o Docker e Docker Compose configurados no Windows Host.
+O projeto utiliza um `Makefile` para facilitar os comandos comuns.
 
-Na raiz do repositório (`C:\Projetos\KannonDo\Dashboard`):
+### 1. Iniciar Ambiente Completo (Recomendado)
+Para subir o backend em Docker e preparar o ambiente:
 ```bash
-docker compose up -d backend
+make dev
 ```
-O Backend FastAPI e a documentação interativa Swagger estarão rodando em:
-- API: `http://localhost:8000/`
-- Docs: `http://localhost:8000/docs/`
+- API/Swagger Docs: `http://localhost:8000/docs`
+- Web Interface: `http://localhost:3000` ou `http://localhost:3001`
 
-### 2. Ambiente do Front-end (Next.js Nativo)
-Vá até o diretório `frontend` e rode a instância local:
-
+### 2. Execução Manual do Frontend
+Se preferir rodar o frontend nativamente no Windows (para melhor performance de Hot Reload):
 ```powershell
 cd frontend
 npm install
 npm run dev
 ```
-O painel de métricas subirá na porta 3000 ou 3001 (se houver colisão de host):
-- Web UI: `http://localhost:3001/`
 
-### 🧪 Executando os Testes (Automáticos)
-Escrevemos uma cobertura no framework **PyTest**. Esses testes usam `httpx` e o `TestClient` local da FastAPI para garantir que todos os nós do backend estão em harmonia.
-
-Para rodar os testes da API diretamente no container instanciado:
+### 🧪 Executando os Testes
+A suíte de testes utiliza **PyTest** e garante a integridade das rotas de upload e listagem:
 ```bash
-docker exec -it kannondo-backend sh -c "pip install pytest httpx && pytest"
+make test
 ```
 
 ## 🏗 Estrutura das Pastas
-- `/backend/app/main.py`: Entradas REST (Upload, Preview, Listagem).
-- `/backend/app/models.py` & `schemas.py`: ORM para Tabela `alunos` e `mensalidades`.
+- `/backend`: Servidor FastAPI com lógica de negócio e banco de dados.
+- `/frontend`: Aplicação Next.js/React.
+- `/pdfExtract`: Documentação de referência, schema e regras de parsing para o sistema Galileu.
+- `/Reports`: Pasta para armazenamento dos relatórios PDF originais.
+
+## 🛠 Comandos úteis (Makefile)
+- `make logs`: Acompanha a saída dos containers em tempo real.
+- `make bash-backend`: Acessa o shell do container do backend.
+- `make clean`: Para os containers e remove volumes (limpa o banco de dados).
+
 - `/backend/app/pdf_parser.py`: Engine Regex de tratamento do Galileu.
 - `/frontend/src/app/page.tsx`: Interface Global SPA Modal Dashboard.
 

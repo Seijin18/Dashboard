@@ -1,7 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Upload, Users, FileText, DollarSign, RefreshCw, AlertCircle } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Upload, Users, FileText, DollarSign, RefreshCw, AlertCircle, Search, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as ChartTooltip, 
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie
+} from 'recharts';
 
 interface Aluno {
   id: number;
@@ -24,6 +37,10 @@ export default function Dashboard() {
   // Estados do Modal de Pré-visualização
   const [previewData, setPreviewData] = useState<any>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+
+  // Filtros e Busca
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Todos");
 
   const fetchAlunos = async () => {
     setIsLoading(true);
@@ -110,6 +127,28 @@ export default function Dashboard() {
   const activeContracts = alunos.filter(a => (a.status || "").toLowerCase() !== "cancelado");
   const totalRevenue = activeContracts.reduce((acc, aluno) => acc + (aluno.valor || 0), 0);
 
+  // Lógica de Filtragem e Busca
+  const filteredAlunos = useMemo(() => {
+    return alunos.filter(a => {
+      const matchSearch = (a.nome || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          (a.contrato || "").toLowerCase().includes(searchTerm.toLowerCase());
+      const matchStatus = statusFilter === "Todos" || a.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [alunos, searchTerm, statusFilter]);
+
+  // Dados para os Gráficos
+  const statusChartData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    alunos.forEach(a => {
+      const s = a.status || "N/A";
+      counts[s] = (counts[s] || 0) + 1;
+    });
+    return Object.keys(counts).map(key => ({ name: key, value: counts[key] }));
+  }, [alunos]);
+
+  const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6'];
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -193,6 +232,84 @@ export default function Dashboard() {
           </form>
         </section>
 
+        {/* GRÁFICOS E FILTROS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Gráfico de Distribuição de Status */}
+          <section className="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-80">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">Distribuição de Status</h2>
+            <div className="flex-1 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={statusChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {statusChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <ChartTooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-center mt-2">
+              {statusChartData.map((entry, index) => (
+                <div key={index} className="flex items-center gap-1">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                  <span className="text-[10px] text-gray-500 font-medium">{entry.name}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Filtros e Busca */}
+          <section className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-4">
+            <h2 className="text-lg font-bold mb-4">Filtros e Busca</h2>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Buscar por nome ou contrato..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              <div className="w-full md:w-48">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm appearance-none bg-white"
+                >
+                  <option value="Todos">Todos os Status</option>
+                  {[...new Set(alunos.map(a => a.status))].filter(Boolean).map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-gray-100 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Filtrados</p>
+                <p className="text-xl font-bold text-gray-800">{filteredAlunos.length}</p>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <p className="text-[10px] text-blue-400 uppercase font-bold tracking-wider mb-1">Receita Filtrada</p>
+                <p className="text-xl font-bold text-blue-800">
+                  {filteredAlunos.reduce((acc, curr) => acc + (curr.valor || 0), 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })}
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+
         {/* TABLE */}
         <section className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
@@ -214,20 +331,27 @@ export default function Dashboard() {
                   <tr>
                     <td colSpan={5} className="px-6 py-8 text-center text-gray-400">Carregando dados...</td>
                   </tr>
-                ) : alunos.length === 0 ? (
+                ) : filteredAlunos.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-gray-400">Nenhum dado encontrado. Faça a importação de um PDF.</td>
+                    <td colSpan={5} className="px-6 py-8 text-center text-gray-400">Nenhum dado encontrado para os filtros atuais.</td>
                   </tr>
                 ) : (
-                  alunos.map((aluno) => (
-                    <tr key={aluno.id} className="hover:bg-gray-50/50 transition">
-                      <td className="px-6 py-3 font-medium text-gray-800">
-                        {aluno.nome}
-                        {aluno.pre_inscricao && (
-                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-800" title="Passou por processo de Pré-inscrição">
-                            Pré-inscrição
-                          </span>
-                        )}
+                  filteredAlunos.map((aluno) => (
+                    <tr 
+                      key={aluno.id} 
+                      className="hover:bg-gray-50 group cursor-pointer transition"
+                      onClick={() => window.location.href = `/alunos/${aluno.id}`}
+                    >
+                      <td className="px-6 py-3 font-medium text-gray-800 flex items-center justify-between">
+                        <span>
+                          {aluno.nome}
+                          {aluno.pre_inscricao && (
+                            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-800" title="Passou por processo de Pré-inscrição">
+                              Pré-inscrição
+                            </span>
+                          )}
+                        </span>
+                        <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 transition-colors" />
                       </td>
                       <td className="px-6 py-3">{aluno.contrato}</td>
                       <td className="px-6 py-3">
@@ -236,11 +360,11 @@ export default function Dashboard() {
                       </td>
                       <td className="px-6 py-3">
                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                          (aluno.status || "").toLowerCase().includes("ativo") 
+                          (aluno.status || "").toLowerCase().includes("ativo") || (aluno.status || "").toLowerCase() === "pago"
                             ? 'bg-green-100 text-green-800' 
-                            : (aluno.status || "").toLowerCase().includes("cancelado") 
+                            : (aluno.status || "").toLowerCase().includes("cancelado") || (aluno.status || "").toLowerCase() === "atrasado"
                             ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
+                            : 'bg-yellow-100 text-yellow-800'
                         }`}>
                           {aluno.status || "N/A"}
                         </span>

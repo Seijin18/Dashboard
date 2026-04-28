@@ -36,3 +36,9 @@ class Mensalidade(MensalidadeBase):
 
     class Config:
         from_attributes = True
+
+class AlunoComHistorico(Aluno):
+    mensalidades: List[Mensalidade]
+
+    class Config:
+        from_attributes = True
