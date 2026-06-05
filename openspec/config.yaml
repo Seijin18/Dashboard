@@ -1,0 +1,44 @@
+schema: spec-driven
+
+context: |
+  Projeto: Dashboard KannonDo — ingestão, validação e visualização financeira para a academia Kannon Do.
+  Domínio: relatórios PDF do sistema Galileu, mensalidades, alunos e dependentes.
+
+  Stack:
+  - Backend: Python 3.10+, FastAPI, SQLAlchemy, SQLite (kannondo.db), pdfplumber
+  - Frontend: Next.js 16 (App Router), React 19, Tailwind CSS v4, Recharts, Lucide
+  - Infra: Docker Compose, Makefile
+
+  Estrutura:
+  - backend/app/: API FastAPI (main.py, pdf_parser.py, models.py, schemas.py, database.py)
+  - frontend/src/app/: páginas Next.js (dashboard, detalhes de aluno)
+  - pdfExtract/: regras e schema de parsing do Galileu
+  - Reports/: PDFs originais
+
+  Comandos:
+  - make dev — sobe backend + frontend via Docker
+  - make test — pytest no container kannondo-backend
+  - make clean — derruba containers e remove volumes (apaga DB)
+  - cd frontend && npm run dev — frontend nativo no Windows
+
+  Convenções:
+  - Respostas da API em JSON; CORS liberado em dev
+  - Upload em duas etapas: preview (/upload-pdf-preview/) e confirmação (/upload-pdf-confirm/)
+  - Identificação de alunos por matrícula/dependente; evitar duplicidade
+  - Frontend consome FASTAPI_URL (Docker) ou localhost:8000 (dev local)
+  - Testes backend com pytest em backend/tests/
+  - Idioma do produto e docs: português (BR)
+
+rules:
+  proposal:
+    - Referenciar CHECKLIST.md e memory-bank/ para evitar retrabalho
+    - Identificar impacto em backend, frontend e pdf_parser.py
+    - Incluir plano de testes (make test ou testes manuais)
+  specs:
+    - Usar Given/When/Then para fluxos de upload, preview e confirmação
+    - Documentar rotas FastAPI e componentes Next.js afetados
+  design:
+    - Descrever fluxo de dados PDF → parser → preview → SQLite → dashboard
+  tasks:
+    - Quebrar em tarefas de backend, frontend e infra separadamente
+    - Incluir atualização do memory-bank ao final de mudanças significativas

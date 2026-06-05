@@ -1,0 +1,16 @@
+﻿node_modules/
+.next/
+out/
+build/
+dist/
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+backend/logs/
+Reports/
+*.db
