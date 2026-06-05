@@ -2,7 +2,7 @@ schema: spec-driven
 
 context: |
   Projeto: Dashboard KannonDo — ingestão, validação e visualização financeira para a academia Kannon Do.
-  Domínio: relatórios PDF do sistema Galileu, mensalidades, alunos e dependentes.
+  Domínio: associação desportiva multi-modalidade (Judô, Yoga, etc.), pessoas, matrículas cruzadas, mensalidades e ingestão Galileu legada.
 
   Stack:
   - Backend: Python 3.10+, FastAPI, SQLAlchemy, SQLite (kannondo.db), pdfplumber

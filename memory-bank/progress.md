@@ -30,11 +30,23 @@
 - [x] Memory Bank (contexto persistente entre sessões)
 - [x] Codebase indexing otimizado (`.cursorignore`)
 
+## Fase Multi-Modalidade (2026-06-05)
+
+- [x] Domínio: Associacao, Modalidade, Turma, Pessoa, Matricula, Mensalidade
+- [x] CRUD API pessoas/matriculas/modalidades/turmas/mensalidades
+- [x] Métricas por modalidade (`GET /metrics/`)
+- [x] Migração legado Aluno → Pessoa + Matricula
+- [x] Bridge Galileu → novo domínio
+- [x] Auth JWT (admin) + página login
+- [x] Frontend: /pessoas, /modalidades, /turmas
+- [x] OpenSpec specs e changes documentadas
+
 ## Pendente (Fase 2+)
 
-- [ ] Edição manual de dados de alunos
-- [ ] Melhorias de UX e robustez (ver `CHECKLIST.md`)
+- [ ] Edição manual avançada de alunos legados
+- [ ] Toasts e melhorias UX
 - [ ] Ambiente de produção dedicado
+- [ ] PostgreSQL + CI/CD
 
 ## Problemas conhecidos
 

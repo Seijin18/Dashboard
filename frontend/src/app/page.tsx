@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Upload, Users, FileText, DollarSign, RefreshCw, AlertCircle, Search, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { apiFetch, resolveApiUrl } from "@/lib/api";
 import { 
   BarChart, 
   Bar, 
@@ -41,15 +42,23 @@ export default function Dashboard() {
   // Filtros e Busca
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Todos");
+  const [metrics, setMetrics] = useState<{
+    total_pessoas: number;
+    matriculas_ativas: number;
+    receita_prevista: number;
+    por_modalidade: { modalidade_nome: string; matriculas_ativas: number }[];
+  } | null>(null);
 
   const fetchAlunos = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8000/alunos/");
-      if (!res.ok) throw new Error("Erro ao buscar dados dos alunos.");
-      const data = await res.json();
+      const [data, m] = await Promise.all([
+        apiFetch<Aluno[]>("/alunos/"),
+        apiFetch<typeof metrics>("/metrics/").catch(() => null),
+      ]);
       setAlunos(data);
+      if (m) setMetrics(m);
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Erro de conexão com a API.");
@@ -72,7 +81,7 @@ export default function Dashboard() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://localhost:8000/upload-pdf-preview/", {
+      const res = await fetch(`${resolveApiUrl()}/upload-pdf-preview/`, {
         method: "POST",
         body: formData,
       });
@@ -99,7 +108,7 @@ export default function Dashboard() {
     try {
       // Misturar os novos e atualizados para enviar ao backend para salvar
       const pl = [...previewData.novos, ...previewData.atualizados];
-      const res = await fetch("http://localhost:8000/upload-pdf-confirm/", {
+      const res = await fetch(`${resolveApiUrl()}/upload-pdf-confirm/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pl),
@@ -156,7 +165,7 @@ export default function Dashboard() {
         <header className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard KannonDo</h1>
-            <p className="text-gray-500 mt-1">Gerenciamento financeiro através dos relatórios Galileu.</p>
+            <p className="text-gray-500 mt-1">Gestão multi-modalidade — Kannon Do</p>
           </div>
           <button 
             onClick={fetchAlunos} 
@@ -181,8 +190,8 @@ export default function Dashboard() {
               <Users size={28} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 font-medium">Total de Alunos</p>
-              <h3 className="text-2xl font-bold text-gray-900">{alunos.length}</h3>
+              <p className="text-sm text-gray-500 font-medium">Total de Pessoas</p>
+              <h3 className="text-2xl font-bold text-gray-900">{metrics?.total_pessoas ?? alunos.length}</h3>
             </div>
           </div>
 
@@ -191,8 +200,8 @@ export default function Dashboard() {
               <FileText size={28} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 font-medium">Contratos Ativos</p>
-              <h3 className="text-2xl font-bold text-gray-900">{activeContracts.length}</h3>
+              <p className="text-sm text-gray-500 font-medium">Matrículas Ativas</p>
+              <h3 className="text-2xl font-bold text-gray-900">{metrics?.matriculas_ativas ?? activeContracts.length}</h3>
             </div>
           </div>
 
@@ -201,13 +210,24 @@ export default function Dashboard() {
               <DollarSign size={28} />
             </div>
             <div>
-              <p className="text-sm text-gray-500 font-medium">Receita Prevista (Ativos)</p>
+              <p className="text-sm text-gray-500 font-medium">Receita Prevista</p>
               <h3 className="text-2xl font-bold text-gray-900">
-                {totalRevenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                {(metrics?.receita_prevista ?? totalRevenue).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
               </h3>
             </div>
           </div>
         </section>
+
+        {metrics?.por_modalidade && metrics.por_modalidade.length > 0 && (
+          <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {metrics.por_modalidade.map((m) => (
+              <div key={m.modalidade_nome} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <p className="text-sm text-gray-500">{m.modalidade_nome}</p>
+                <p className="text-lg font-bold">{m.matriculas_ativas} matrículas</p>
+              </div>
+            ))}
+          </section>
+        )}
 
         {/* UPLOAD AREA */}
         <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">

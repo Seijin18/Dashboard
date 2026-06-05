@@ -1,20 +1,14 @@
 ---
-description: Integra OpenSpec com Memory Bank neste projeto
-alwaysApply: true
+description: Workflow OpenSpec para features e mudanças de escopo
+alwaysApply: false
 ---
 
-# OpenSpec + Memory Bank
+# OpenSpec
 
-Antes de implementar mudanças significativas:
+Comandos: `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:sync`, `/opsx:archive`
 
-1. Ler `memory-bank/` (especialmente `activeContext.md` e `progress.md`)
-2. Verificar `openspec/specs/` e `CHECKLIST.md`
-3. Usar `/opsx:propose` para novas features ou mudanças de escopo
+Fluxo: propose → aprovar → apply → sync/archive.
 
-Após concluir uma mudança:
+Ao aplicar: @-referenciar `tasks.md` e specs da change ativa; não improvisar requisitos.
 
-1. Atualizar `memory-bank/activeContext.md` e `memory-bank/progress.md`
-2. Se a mudança alterou requisitos, rodar `/opsx:sync` ou `/opsx:archive`
-3. Manter `openspec/config.yaml` alinhado se convenções mudarem
-
-Comandos OpenSpec: `/opsx:propose`, `/opsx:explore`, `/opsx:apply`, `/opsx:sync`, `/opsx:archive`
+Config: `openspec/config.yaml`. Artefatos em `openspec/changes/` e `openspec/specs/`.

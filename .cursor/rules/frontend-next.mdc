@@ -1,0 +1,13 @@
+---
+description: Convenções do frontend Next.js
+globs: frontend/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend Next.js
+
+- App Router em `frontend/src/app/`; regras Next.js em `frontend/AGENTS.md`
+- Stack: Next 16, React 19, Tailwind v4, Recharts, Lucide
+- API: `FASTAPI_URL` (Docker) ou `http://localhost:8000` (dev local)
+- Páginas chave: `page.tsx` (dashboard), `alunos/[id]/page.tsx` (detalhes)
+- Não reler `node_modules/next/dist/docs/` inteiro — consultar só APIs usadas

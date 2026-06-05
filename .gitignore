@@ -27,7 +27,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+/lib/
 lib64/
 parts/
 sdist/
@@ -73,4 +73,5 @@ Desktop.ini
 # ==========================================
 # Project Specific
 # ==========================================
+*.db
 gemini-code-*.txt

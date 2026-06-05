@@ -14,6 +14,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
+import { apiFetch } from '@/lib/api';
 
 interface Mensalidade {
   id: number;
@@ -45,9 +46,7 @@ export default function AlunoDetalhes() {
   useEffect(() => {
     async function fetchAluno() {
       try {
-        const res = await fetch(`http://localhost:8000/alunos/${id}`);
-        if (!res.ok) throw new Error('Falha ao carregar dados do aluno');
-        const data = await res.json();
+        const data = await apiFetch<Aluno>(`/alunos/${id}`);
         setAluno(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Erro desconhecido');

@@ -2,33 +2,22 @@
 
 ## Foco atual
 
-Configuração inicial de **OpenSpec** e **Memory Bank** no repositório Dashboard para desenvolvimento assistido por IA com contexto persistente.
+SaaS multi-modalidade implementado: domínio Pessoa/Matricula/Modalidade/Turma, CRUD API, dashboard UI, billing manual, bridge Galileu e auth JWT.
 
-## Configuração recém-aplicada
+## Estado
 
-- `openspec init --tools cursor` — skills e comandos OPSX em `.cursor/`
-- `openspec/config.yaml` — contexto do projeto KannonDo
-- `npx cursor-bank init` — regras de memory bank em `.cursor/rules/`
-- `memory-bank/` — documentação inicial populada
-- `AGENTS.md` — guia de workflow para agentes
-- `.cursorignore` — otimização do codebase indexing
+- OpenSpec: specs em `openspec/specs/`, changes em `openspec/changes/`
+- Backend: routers em `backend/app/routers/`, serviços em `backend/app/services/`
+- Frontend: `/pessoas`, `/modalidades`, `/turmas`, `/login`
+- Testes: 8 passed (`make test` / pytest)
+
+## Credenciais dev
+
+- Admin: `admin@kannondo.local` / `admin123`
+- `DISABLE_AUTH=true` desactiva auth (testes)
 
 ## Próximos passos sugeridos
 
-1. Recarregar o Cursor (`Developer: Reload Window`) para ativar comandos `/opsx:*`
-2. Abrir o projeto `C:\Users\marco\Projects\Dashboard` no Cursor
-3. Continuar Fase 2 do `CHECKLIST.md`:
-   - Edição manual de dados de alunos
-   - Melhorias de UX e robustez pendentes
-
-## Decisões em vigor
-
-- Usar **clangd/OpenSpec + Memory Bank** em vez de depender só do chat
-- Manter documentação em português (BR)
-- Workflow: PLAN → ACT para mudanças; `update memory bank` após features
-
-## Referências rápidas
-
-- Status de features: `CHECKLIST.md`
-- Regras Next.js: `frontend/AGENTS.md`
-- Parsing Galileu: `pdfExtract/` e `backend/app/pdf_parser.py`
+1. Migrar dados legados: `POST /admin/migrate-legacy` (após import Galileu)
+2. Fase 3: PostgreSQL, CI/CD, exportação CSV
+3. UX: toasts, edição avançada

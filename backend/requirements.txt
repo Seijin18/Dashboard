@@ -3,3 +3,8 @@ uvicorn
 sqlalchemy
 pdfplumber
 python-multipart
+alembic
+python-jose[cryptography]
+bcrypt
+pytest
+httpx

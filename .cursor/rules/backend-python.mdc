@@ -1,0 +1,13 @@
+---
+description: Convenções do backend FastAPI
+globs: backend/**/*.py
+alwaysApply: false
+---
+
+# Backend Python
+
+- Rotas em `backend/app/main.py`; modelos `models.py`; schemas `schemas.py`
+- Parser PDF: `pdf_parser.py` — formato Galileu (`pdfExtract/` como referência)
+- Upload em 2 etapas: preview (sem persistir) → confirm
+- SQLite via SQLAlchemy; anti-duplicidade por matrícula/dependente
+- Logs em `backend/logs/`; testes em `backend/tests/` (`make test`)

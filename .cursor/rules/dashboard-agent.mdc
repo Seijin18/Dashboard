@@ -1,0 +1,52 @@
+---
+description: Regras principais do agente — eficiência de tokens, OpenSpec e Memory Bank
+alwaysApply: true
+---
+
+# Dashboard Agent
+
+## Economia de tokens (prioridade)
+
+- Respostas concisas; sem repetir contexto já conhecido
+- Buscar no código (grep/semantic search) antes de ler arquivos inteiros
+- Ler só trechos relevantes; evitar dumps de arquivo no chat
+- Não reler `memory-bank/` nem `openspec/` se o contexto da sessão já cobre a tarefa
+- Uma preocupação por resposta; diff mínimo e focado
+
+## Memory Bank — leitura seletiva
+
+**Padrão (início de sessão ou tarefa nova):** só `memory-bank/activeContext.md`
+
+**Sob demanda:**
+| Arquivo | Quando ler |
+|---------|------------|
+| `progress.md` | status, checklist, o que falta |
+| `systemPatterns.md` | arquitetura, rotas, fluxo de dados |
+| `techContext.md` | setup, deps, comandos make/npm |
+| `projectbrief.md` / `productContext.md` | escopo novo ou feature grande |
+
+**Atualizar** (após mudança significativa ou `update memory bank`): `activeContext.md` + `progress.md` apenas. Revisão completa só se o usuário pedir.
+
+## OpenSpec — quando usar
+
+| Situação | Ação |
+|----------|------|
+| Bug, typo, ajuste pontual | Implementar direto; sem OpenSpec |
+| Feature multi-arquivo ou escopo incerto | `/opsx:propose` → aprovar → `/opsx:apply` |
+| Spec desatualizada | `/opsx:sync` ou `/opsx:archive` |
+
+Não carregar `openspec/specs/` nem `CHECKLIST.md` sem necessidade. Contexto do projeto já está em `openspec/config.yaml`.
+
+## PLAN / ACT (somente sob comando)
+
+- `PLAN`: planejar sem editar código; prefixo `# Mode: PLAN`
+- `ACT`: implementar plano aprovado; prefixo `# Mode: ACT`
+- Sem comando explícito: agir normalmente (sem modo rígido, sem repetir plano inteiro)
+
+## Implementação
+
+- Backend: `backend/app/` (FastAPI, SQLAlchemy, `pdf_parser.py`)
+- Frontend: `frontend/src/app/` (Next.js 16 App Router)
+- Referência parsing: `pdfExtract/`
+- Testes: `make test` após mudanças no backend
+- Idioma do produto/docs: pt-BR
